@@ -7,7 +7,7 @@ function generateToken(user) {
 }
 const getUser = async (req, res) => {
   try {
-    id = req.params.id;
+    const { id } = req.user;
     const user = await User.findById({ _id: id });
     res.json({
       error: "false",
@@ -21,6 +21,27 @@ const getUser = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+  }
+};
+
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    if (!users) {
+      return res.status(404).json({ message: "No users found" });
+    }
+    return res.status(200).json({
+      message: "Users found",
+      users: users.map((user) => {
+        return {
+          name: user.name,
+
+          score: user.score,
+        };
+      }),
+    });
+  } catch (err) {
+    res.status(500).json({ error: "true", message: err.message });
   }
 };
 
@@ -86,7 +107,7 @@ async function loginUser(req, res) {
 }
 async function getAnswers(req, res) {
   try {
-    const { id } = req.params;
+    const { id } = req.user;
     const user = await User.findById({
       _id: id,
     });
@@ -105,7 +126,8 @@ async function getAnswers(req, res) {
 }
 async function addAnswer(req, res) {
   try {
-    const { isValid, answer, id } = req.body;
+    const { id } = req.user;
+    const { isValid, answer } = req.body;
     const newAnswer = { answer, isValid };
     const newUser = await User.findByIdAndUpdate(
       { _id: id },
@@ -113,6 +135,9 @@ async function addAnswer(req, res) {
     );
     if (!newUser) {
       return res.status(400).json({ message: "Answer not added" });
+    }
+    if (isValid) {
+      newUser.score += 10;
     }
     return res.status(200).json({ message: "Answer added" });
   } catch (err) {
@@ -122,7 +147,8 @@ async function addAnswer(req, res) {
 
 const updateProfile = async (req, res) => {
   try {
-    const { id, password, name } = req.body;
+    const { id } = req.user;
+    const { password, name } = req.body;
     const user = await User.findById({ _id: id });
     if (!user) {
       return res.status(400).json({ message: "Profile not updated" });
@@ -146,4 +172,5 @@ module.exports = {
   addAnswer,
   getAnswers,
   updateProfile,
+  getAllUsers,
 };

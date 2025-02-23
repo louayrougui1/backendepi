@@ -8,11 +8,12 @@ const {
   addAnswer,
   getAnswers,
   updateProfile,
+  getAllUsers,
 } = require("../controllers/userControllers");
-
-router.get("/:id", protect, getUser);
+router.get("/dashboard", getAllUsers);
 router.post("/signup", regUser);
 router.put("/login", loginUser);
+router.get("/", protect, getUser);
 router.post("/submit", protect, addAnswer);
 router.get("/answers/:id", protect, getAnswers);
 router.put("/update", protect, updateProfile);
